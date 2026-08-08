@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kalkulator Kebutuhan Air Harian</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+      background: linear-gradient(160deg, #e8f4fd 0%, #d0eaf8 50%, #bde0f5 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 32px 16px 48px;
+      color: #1a3a4f;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 4px 24px rgba(30, 100, 160, 0.12);
+      width: 100%;
+      max-width: 480px;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: linear-gradient(135deg, #1e7ec8 0%, #0f5fa0 100%);
+      padding: 32px 28px 28px;
+      text-align: center;
+      color: #ffffff;
+    }
+
+    .header-icon {
+      font-size: 48px;
+      line-height: 1;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      margin-bottom: 4px;
+    }
+
+    .header p {
+      font-size: 13px;
+      opacity: 0.85;
+    }
+
+    /* ── Form ── */
+    .form-body {
+      padding: 28px 28px 0;
+    }
+
+    .field {
+      margin-bottom: 20px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #2d6a9f;
+      margin-bottom: 6px;
+      letter-spacing: 0.2px;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-wrap input {
+      width: 100%;
+      padding: 12px 52px 12px 14px;
+      border: 1.5px solid #c5dff0;
+      border-radius: 10px;
+      font-size: 15px;
+      color: #1a3a4f;
+      background: #f5faff;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+      -moz-appearance: textfield;
+    }
+
+    .input-wrap input::-webkit-inner-spin-button,
+    .input-wrap input::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+    .input-wrap input:focus {
+      border-color: #1e7ec8;
+      background: #ffffff;
+    }
+
+    .input-wrap input.error {
+      border-color: #e05252;
+      background: #fff5f5;
+    }
+
+    .unit-badge {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 12px;
+      font-weight: 600;
+      color: #1e7ec8;
+      background: #daeeff;
+      padding: 2px 8px;
+      border-radius: 20px;
+      pointer-events: none;
+    }
+
+    .err-msg {
+      font-size: 12px;
+      color: #e05252;
+      margin-top: 5px;
+      display: none;
+    }
+
+    .err-msg.visible { display: block; }
+
+    .field-hint {
+      font-size: 11.5px;
+      color: #6a9bc0;
+      margin-top: 5px;
+    }
+
+    /* ── Button ── */
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #1e7ec8 0%, #0f5fa0 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin: 4px 0 28px;
+      letter-spacing: 0.3px;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .btn:hover { opacity: 0.92; }
+    .btn:active { transform: scale(0.98); }
+
+    /* ── Result ── */
+    .result-section {
+      display: none;
+      padding: 0 28px 28px;
+    }
+
+    .result-section.visible { display: block; }
+
+    .divider {
+      height: 1px;
+      background: #daeeff;
+      margin-bottom: 24px;
+    }
+
+    .result-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #2d6a9f;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 14px;
+    }
+
+    .result-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .result-card {
+      background: linear-gradient(135deg, #e8f4fd, #d4ecf9);
+      border: 1px solid #b8dcf2;
+      border-radius: 14px;
+      padding: 16px 12px;
+      text-align: center;
+    }
+
+    .result-card .value {
+      font-size: 26px;
+      font-weight: 800;
+      color: #0f5fa0;
+      line-height: 1.1;
+    }
+
+    .result-card .value-unit {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1e7ec8;
+      margin-top: 2px;
+    }
+
+    .result-card .label {
+      font-size: 11px;
+      color: #5a90b8;
+      margin-top: 6px;
+    }
+
+    .breakdown {
+      background: #f5faff;
+      border: 1px solid #c5dff0;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 13px;
+      color: #3a6a8a;
+      line-height: 1.7;
+      margin-bottom: 20px;
+    }
+
+    .breakdown strong { color: #1a3a4f; }
+
+    /* ── Tips ── */
+    .tips-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #2d6a9f;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 12px;
+    }
+
+    .tip-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-size: 13px;
+      color: #3a5f7a;
+      line-height: 1.55;
+    }
+
+    .tip-dot {
+      width: 8px;
+      height: 8px;
+      min-width: 8px;
+      border-radius: 50%;
+      background: #1e7ec8;
+      margin-top: 5px;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      text-align: center;
+      padding: 16px 28px;
+      border-top: 1px solid #e5e7eb;
+      font-size: 11.5px;
+      color: #6a9bc0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- Header -->
+  <div class="header">
+    <span class="header-icon">💧</span>
+    <h1>Kalkulator Kebutuhan Air Harian</h1>
+    <p>Hitung kebutuhan cairan tubuhmu berdasarkan berat badan &amp; aktivitas fisik</p>
+  </div>
+
+  <!-- Form -->
+  <div class="form-body">
+
+    <div class="field">
+      <label for="weight">Berat Badan</label>
+      <div class="input-wrap">
+        <input type="number" id="weight" placeholder="Contoh: 60" min="1" max="300" />
+        <span class="unit-badge">kg</span>
+      </div>
+      <div class="err-msg" id="weight-err">Masukkan berat badan yang valid (1–300 kg).</div>
+    </div>
+
+    <div class="field">
+      <label for="activity">Durasi Aktivitas Fisik Harian</label>
+      <div class="input-wrap">
+        <input type="number" id="activity" placeholder="Contoh: 30" min="0" max="720" />
+        <span class="unit-badge">menit</span>
+      </div>
+      <div class="err-msg" id="activity-err">Masukkan durasi aktivitas yang valid (0–720 menit).</div>
+      <div class="field-hint">Isi 0 jika tidak ada aktivitas fisik hari ini.</div>
+    </div>
+
+    <button class="btn" onclick="calculate()">💧 Hitung Kebutuhan Air</button>
+  </div>
+
+  <!-- Result -->
+  <div class="result-section" id="result-section">
+    <div class="divider"></div>
+
+    <div class="result-title">Hasil Perhitungan</div>
+
+    <div class="result-cards">
+      <div class="result-card">
+        <div class="value" id="res-liter">—</div>
+        <div class="value-unit">Liter / hari</div>
+        <div class="label">Total kebutuhan</div>
+      </div>
+      <div class="result-card">
+        <div class="value" id="res-ml">—</div>
+        <div class="value-unit">mL / hari</div>
+        <div class="label">Total kebutuhan</div>
+      </div>
+    </div>
+
+    <div class="breakdown" id="breakdown"></div>
+
+    <div class="tips-title">Tips Menjaga Hidrasi</div>
+    <div id="tips-list"></div>
+  </div>
+
+  <div class="footer">Alat bantu edukasi — bukan pengganti saran medis profesional.</div>
+</div>
+
+<script>
+  const TIPS = [
+    "Minum 1–2 gelas air segera setelah bangun tidur untuk menghidrasi tubuh setelah tidur malam.",
+    "Bawa botol minum ke mana pun kamu pergi agar mudah minum secara rutin sepanjang hari.",
+    "Jadikan minum air sebagai kebiasaan sebelum makan — membantu pencernaan sekaligus mencegah makan berlebih.",
+    "Perhatikan warna urin: kuning muda (seperti jerami) menandakan hidrasi yang baik.",
+    "Tingkatkan asupan air saat cuaca panas, setelah berkeringat, atau saat sakit.",
+    "Konsumsi buah dan sayur dengan kadar air tinggi (semangka, timun, bayam) untuk membantu hidrasi.",
+    "Kurangi minuman berkafein dan beralkohol karena bersifat diuretik yang dapat meningkatkan kebutuhan air.",
+  ];
+
+  function showError(id, show) {
+    document.getElementById(id).classList.toggle("visible", show);
+    const inputId = id.replace("-err", "");
+    document.getElementById(inputId).classList.toggle("error", show);
+  }
+
+  function calculate() {
+    const weightVal = document.getElementById("weight").value.trim();
+    const activityVal = document.getElementById("activity").value.trim();
+
+    const weight = parseFloat(weightVal);
+    const activity = parseFloat(activityVal);
+
+    let valid = true;
+
+    if (weightVal === "" || isNaN(weight) || weight <= 0 || weight > 300) {
+      showError("weight-err", true);
+      valid = false;
+    } else {
+      showError("weight-err", false);
+    }
+
+    if (activityVal === "" || isNaN(activity) || activity < 0 || activity > 720) {
+      showError("activity-err", true);
+      valid = false;
+    } else {
+      showError("activity-err", false);
+    }
+
+    if (!valid) return;
+
+    // Rumus: kebutuhan dasar = berat badan × 35 mL/kg
+    // Tambahan aktivitas: setiap 30 menit aktivitas ≈ +350 mL (≈ 12 mL/menit)
+    const baseMl = weight * 35;
+    const activityMl = Math.round((activity / 30) * 350);
+    const totalMl = baseMl + activityMl;
+    const totalLiter = totalMl / 1000;
+
+    document.getElementById("res-liter").textContent = totalLiter.toFixed(2);
+    document.getElementById("res-ml").textContent = totalMl.toLocaleString("id-ID");
+
+    // Breakdown
+    let breakdownHTML =
+      "<strong>Rincian perhitungan:</strong><br>" +
+      "• Kebutuhan dasar &nbsp;: " + weight + " kg × 35 mL = <strong>" + baseMl.toLocaleString("id-ID") + " mL</strong><br>" +
+      "• Tambahan aktivitas: " + activity + " menit ≈ <strong>" + activityMl.toLocaleString("id-ID") + " mL</strong><br>" +
+      "• <strong>Total &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: " + totalMl.toLocaleString("id-ID") + " mL (" + totalLiter.toFixed(2) + " L)</strong>";
+    document.getElementById("breakdown").innerHTML = breakdownHTML;
+
+    // Tips (acak 4 dari 7)
+    const shuffled = TIPS.slice().sort(() => Math.random() - 0.5).slice(0, 4);
+    const tipsHTML = shuffled.map(tip =>
+      '<div class="tip-item"><div class="tip-dot"></div><span>' + tip + '</span></div>'
+    ).join("");
+    document.getElementById("tips-list").innerHTML = tipsHTML;
+
+    const section = document.getElementById("result-section");
+    section.classList.add("visible");
+    section.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  // Enter key support
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") calculate();
+  });
+</script>
+
+</body>
+</html>
